@@ -13,6 +13,8 @@ type cliCommand struct {
 	callback    func() error
 }
 
+var commands map[string]cliCommand
+
 func cleanInput(text string) []string {
 	cleanedInput := strings.Fields(text)
 	return cleanedInput
@@ -24,20 +26,21 @@ func commandExit() error {
 	return fmt.Errorf("Unable to close gracefully")
 }
 
-func commandHelp(commands map[string]cliCommand) error {
+func commandHelp() error {
 	helpText := "\nWelcome to the Pokedex!\nUsage:\n"
 	for _, val := range commands {
 		helpText += "\n" + val.name + ": " + val.description
 	}
-	_, err := fmt.Println("\nWelcome to the Pokedex!\n Usage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex\n")
-
+	_, err := fmt.Println("\nWelcome to the Pokedex!\n Usage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex")
+	fmt.Println("")
 	if err != nil {
 		return fmt.Errorf("There was an error printing help")
 	}
 	return nil
 }
+
 func main() {
-	var commands = map[string]cliCommand{
+	commands = map[string]cliCommand{
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
@@ -49,6 +52,7 @@ func main() {
 			callback:    commandHelp,
 		},
 	}
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		print("Pokedex > ")

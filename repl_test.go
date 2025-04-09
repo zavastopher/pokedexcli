@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"os/exec"
 	"testing"
 )
 
@@ -46,4 +48,25 @@ func TestCleanInput(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestHelp(t *testing.T) {
+	if error := commandHelp(); error != nil {
+		t.Errorf("Commandhelp function is unable to print text")
+	}
+}
+
+func TestExit(t *testing.T) {
+	if os.Getenv("exit") == "1" {
+		commandExit()
+		return
+	}
+
+	cmd := exec.Command(os.Args[0], "-test.run=TestExit")
+	cmd.Env = append(os.Environ(), "exit=1")
+
+	if err := cmd.Run(); err != nil {
+		t.Errorf("Did not exit gracefully")
+	}
+
 }
