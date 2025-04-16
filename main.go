@@ -13,11 +13,6 @@ type cliCommand struct {
 	callback    func(config) error
 }
 
-type config struct {
-	next     string
-	previous string
-}
-
 var commands map[string]cliCommand
 
 var conf config
@@ -47,6 +42,13 @@ func commandHelp(conf config) error {
 }
 
 func commandMap(conf config) error {
+	next, prev, locations, err := locationsRequest(conf)
+	if err != nil {
+		return fmt.Errorf("Unable to get locations %v", err)
+	}
+	conf.next = next
+	conf.previous = prev
+	println(locations.Results)
 	return nil
 }
 
@@ -74,7 +76,7 @@ func main() {
 	}
 
 	conf := config{
-		next:     "https://pokeapi.co/api/v2/location-area/",
+		next:     "https://pokeapi.co/api/v2/location/",
 		previous: "",
 	}
 
