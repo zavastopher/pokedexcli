@@ -10,7 +10,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(config) error
+	callback    func(*config) error
 }
 
 var commands map[string]cliCommand
@@ -22,13 +22,13 @@ func cleanInput(text string) []string {
 	return cleanedInput
 }
 
-func commandExit(conf config) error {
+func commandExit(conf *config) error {
 	fmt.Println("\nClosing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return fmt.Errorf("Unable to close gracefully")
 }
 
-func commandHelp(conf config) error {
+func commandHelp(conf *config) error {
 	helpText := "\nWelcome to the Pokedex!\nUsage:\n"
 	for _, val := range commands {
 		helpText += "\n" + val.name + ": " + val.description
@@ -41,18 +41,32 @@ func commandHelp(conf config) error {
 	return nil
 }
 
-func commandMap(conf config) error {
-	next, prev, locations, err := locationsRequest(conf)
+func commandMap(conf *config) error {
+	var locations LocationResponse
+	next, prev, err := locationsRequest(*conf, &locations)
 	if err != nil {
 		return fmt.Errorf("Unable to get locations %v", err)
 	}
-	conf.next = next
-	conf.previous = prev
-	println(locations.Results)
+	(*conf).next = next
+	(*conf).previous = prev
+	for _, loc := range locations.Results {
+		fmt.Println(loc.Name)
+	}
 	return nil
 }
 
-func commandMapb(conf config) error {
+func commandMapb(conf *config) error {
+	var locations LocationResponse
+	next, prev, err := locationsRequestBack(*conf, &locations)
+	if err != nil {
+		return fmt.Errorf("Unable to get locations %v", err)
+	}
+
+	(*conf).next = next
+	(*conf).previous = prev
+	for _, loc := range locations.Results {
+		fmt.Println(loc.Name)
+	}
 	return nil
 }
 
@@ -89,7 +103,7 @@ func main() {
 
 		command, ok := commands[commandText]
 		if ok {
-			err := command.callback(conf)
+			err := command.callback(&conf)
 			if err != nil {
 				fmt.Print(err)
 			}
