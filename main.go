@@ -56,6 +56,10 @@ func commandMap(conf *config) error {
 }
 
 func commandMapb(conf *config) error {
+	if conf.next == POKEAPI_ROOT_URL {
+		fmt.Println("Already on the first page")
+		return nil
+	}
 	var locations LocationResponse
 	next, prev, err := locationsRequestBack(*conf, &locations)
 	if err != nil {
@@ -63,7 +67,9 @@ func commandMapb(conf *config) error {
 	}
 
 	(*conf).next = next
-	(*conf).previous = prev
+	if prev == nil {
+		(*conf).previous = ""
+	}
 	for _, loc := range locations.Results {
 		fmt.Println(loc.Name)
 	}
@@ -87,10 +93,15 @@ func main() {
 			description: "Display the next 20 locations in the Pokemon world",
 			callback:    commandMap,
 		},
+		"mapb": {
+			name:        "mapb",
+			description: "Display the previous 20 locations in the Pokemon World",
+			callback:    commandMapb,
+		},
 	}
 
 	conf := config{
-		next:     "https://pokeapi.co/api/v2/location/",
+		next:     POKEAPI_ROOT_URL,
 		previous: "",
 	}
 
