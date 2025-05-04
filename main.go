@@ -56,7 +56,7 @@ func commandMap(conf *config) error {
 }
 
 func commandMapb(conf *config) error {
-	if *conf.next == POKEAPI_ROOT_URL {
+	if conf.next == POKEAPI_ROOT_URL {
 		fmt.Println("Already on the first page")
 		return nil
 	}
@@ -99,10 +99,9 @@ func main() {
 	}
 
 	conf := config{
-		next:     nil,
-		previous: nil,
+		next:     POKEAPI_ROOT_URL,
+		previous: "",
 	}
-	*conf.next = POKEAPI_ROOT_URL
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for {

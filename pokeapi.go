@@ -10,8 +10,8 @@ import (
 const POKEAPI_ROOT_URL = "https://pokeapi.co/api/v2/"
 
 type config struct {
-	next     *string
-	previous *string
+	next     string
+	previous string
 }
 
 type LocationResponse struct {
@@ -24,8 +24,8 @@ type LocationResponse struct {
 	} `json:"results"`
 }
 
-func locationsRequest(conf config, resp *LocationResponse) (next *string, prev *string, err error) {
-	res, err := http.Get(*conf.next)
+func locationsRequest(conf config, resp *LocationResponse) (next string, prev string, err error) {
+	res, err := http.Get(conf.next)
 	if err != nil {
 		fmt.Errorf("Unable to complete location request: %v", err)
 		return conf.next, conf.previous, err
@@ -43,11 +43,11 @@ func locationsRequest(conf config, resp *LocationResponse) (next *string, prev *
 		return conf.next, conf.previous, err
 	}
 
-	return &resp.Next, conf.next, nil
+	return resp.Next, conf.next, nil
 }
 
-func locationsRequestBack(conf config, resp *LocationResponse) (next *string, prev *string, err error) {
-	res, err := http.Get(*conf.previous)
+func locationsRequestBack(conf config, resp *LocationResponse) (next string, prev string, err error) {
+	res, err := http.Get(conf.previous)
 	if err != nil {
 		fmt.Errorf("Unable to complete location request: %v", err)
 		return conf.next, conf.previous, err
@@ -65,6 +65,8 @@ func locationsRequestBack(conf config, resp *LocationResponse) (next *string, pr
 		fmt.Errorf("Unable to unmarshal data")
 		return conf.next, conf.previous, err
 	}
-
-	return conf.next, resp.Previous, nil
+	if resp.Previous == nil {
+		return conf.next, "", nil
+	}
+	return conf.next, *resp.Previous, nil
 }
