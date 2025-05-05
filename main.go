@@ -3,8 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/zavastopher/pokedexcli/internal/pokeapi.Config"
-	"github.com/zavastopher/pokedexcli/internal/pokeapi.LocationResponse"
+	"internal/pokeapi"
+	. "internal/pokeapi"
 	"os"
 	"strings"
 )
@@ -24,13 +24,13 @@ func cleanInput(text string) []string {
 	return cleanedInput
 }
 
-func commandExit(conf *config) error {
+func commandExit(conf *Config) error {
 	fmt.Println("\nClosing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return fmt.Errorf("Unable to close gracefully")
 }
 
-func commandHelp(conf *config) error {
+func commandHelp(conf *Config) error {
 	helpText := "\nWelcome to the Pokedex!\nUsage:\n"
 	for _, val := range commands {
 		helpText += "\n" + val.name + ": " + val.description
@@ -43,37 +43,37 @@ func commandHelp(conf *config) error {
 	return nil
 }
 
-func commandMap(conf *config) error {
-	if conf.next == "" {
+func commandMap(conf *Config) error {
+	if conf.Next == "" {
 		fmt.Println("At the last page")
 		return nil
 	}
 	var locations LocationResponse
-	next, prev, err := locationsRequest(conf, &locations)
+	next, prev, err := pokeapi.LocationsRequest(conf, &locations)
 	if err != nil {
 		return fmt.Errorf("Unable to get locations %v", err)
 	}
-	(*conf).next = next
-	(*conf).previous = prev
+	(*conf).Next = next
+	(*conf).Previous = prev
 	for _, loc := range locations.Results {
 		fmt.Println(loc.Name)
 	}
 	return nil
 }
 
-func commandMapb(conf *config) error {
-	if conf.previous == "" {
+func commandMapb(conf *Config) error {
+	if conf.Previous == "" {
 		fmt.Println("Already on the first page")
 		return nil
 	}
 	var locations LocationResponse
-	next, prev, err := locationsRequestBack(conf, &locations)
+	next, prev, err := pokeapi.LocationsRequestBack(conf, &locations)
 	if err != nil {
 		return fmt.Errorf("Unable to get locations %v", err)
 	}
 
-	(*conf).next = next
-	(*conf).previous = prev
+	(*conf).Next = next
+	(*conf).Previous = prev
 	for _, loc := range locations.Results {
 		fmt.Println(loc.Name)
 	}
@@ -104,9 +104,9 @@ func main() {
 		},
 	}
 
-	conf = config{
-		next:     POKEAPI_ROOT_URL + "location/",
-		previous: "",
+	conf = Config{
+		Next:     POKEAPI_ROOT_URL + "location/",
+		Previous: "",
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
