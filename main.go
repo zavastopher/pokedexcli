@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/zavastopher/pokedexcli/internal/pokeapi.Config"
+	"github.com/zavastopher/pokedexcli/internal/pokeapi.LocationResponse"
 	"os"
 	"strings"
 )
@@ -10,12 +12,12 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*Config) error
 }
 
 var commands map[string]cliCommand
 
-var conf config
+var conf Config
 
 func cleanInput(text string) []string {
 	cleanedInput := strings.Fields(text)
