@@ -24,7 +24,8 @@ type LocationResponse struct {
 	} `json:"results"`
 }
 
-func locationsRequest(conf config, resp *LocationResponse) (next string, prev string, err error) {
+func locationsRequest(confp *config, resp *LocationResponse) (next string, prev string, err error) {
+	conf := *confp
 	res, err := http.Get(conf.next)
 	if err != nil {
 		fmt.Errorf("Unable to complete location request: %v", err)
@@ -37,7 +38,7 @@ func locationsRequest(conf config, resp *LocationResponse) (next string, prev st
 		return conf.next, conf.previous, err
 	}
 
-	err = json.Unmarshal(body, &resp)
+	err = json.Unmarshal(body, resp)
 	if err != nil {
 		fmt.Errorf("Unable to unmarshal data")
 		return conf.next, conf.previous, err
@@ -46,7 +47,8 @@ func locationsRequest(conf config, resp *LocationResponse) (next string, prev st
 	return resp.Next, conf.next, nil
 }
 
-func locationsRequestBack(conf config, resp *LocationResponse) (next string, prev string, err error) {
+func locationsRequestBack(confp *config, resp *LocationResponse) (next string, prev string, err error) {
+	conf := *confp
 	res, err := http.Get(conf.previous)
 	if err != nil {
 		fmt.Errorf("Unable to complete location request: %v", err)
@@ -60,13 +62,14 @@ func locationsRequestBack(conf config, resp *LocationResponse) (next string, pre
 		return conf.next, conf.previous, err
 	}
 
-	err = json.Unmarshal(body, &resp)
+	err = json.Unmarshal(body, resp)
 	if err != nil {
 		fmt.Errorf("Unable to unmarshal data")
 		return conf.next, conf.previous, err
 	}
-	if resp.Previous == nil {
-		return conf.next, "", nil
+
+	if resp.Previous == nil || *resp.Previous == "" {
+		return conf.previous, "", nil
 	}
-	return conf.next, *resp.Previous, nil
+	return conf.previous, *resp.Previous, nil
 }

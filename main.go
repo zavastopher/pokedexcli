@@ -43,7 +43,7 @@ func commandHelp(conf *config) error {
 
 func commandMap(conf *config) error {
 	var locations LocationResponse
-	next, prev, err := locationsRequest(*conf, &locations)
+	next, prev, err := locationsRequest(conf, &locations)
 	if err != nil {
 		return fmt.Errorf("Unable to get locations %v", err)
 	}
@@ -56,12 +56,12 @@ func commandMap(conf *config) error {
 }
 
 func commandMapb(conf *config) error {
-	if conf.next == POKEAPI_ROOT_URL {
+	if conf.next == (POKEAPI_ROOT_URL + "location/") {
 		fmt.Println("Already on the first page")
 		return nil
 	}
 	var locations LocationResponse
-	next, prev, err := locationsRequestBack(*conf, &locations)
+	next, prev, err := locationsRequestBack(conf, &locations)
 	if err != nil {
 		return fmt.Errorf("Unable to get locations %v", err)
 	}
@@ -98,8 +98,8 @@ func main() {
 		},
 	}
 
-	conf := config{
-		next:     POKEAPI_ROOT_URL,
+	conf = config{
+		next:     POKEAPI_ROOT_URL + "location/",
 		previous: "",
 	}
 
