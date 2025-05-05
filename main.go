@@ -33,7 +33,7 @@ func commandHelp(conf *config) error {
 	for _, val := range commands {
 		helpText += "\n" + val.name + ": " + val.description
 	}
-	_, err := fmt.Println("\nWelcome to the Pokedex!\n Usage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex")
+	_, err := fmt.Println(helpText)
 	fmt.Println("")
 	if err != nil {
 		return fmt.Errorf("There was an error printing help")
@@ -42,6 +42,10 @@ func commandHelp(conf *config) error {
 }
 
 func commandMap(conf *config) error {
+	if conf.next == "" {
+		fmt.Println("At the last page")
+		return nil
+	}
 	var locations LocationResponse
 	next, prev, err := locationsRequest(conf, &locations)
 	if err != nil {
@@ -56,7 +60,7 @@ func commandMap(conf *config) error {
 }
 
 func commandMapb(conf *config) error {
-	if conf.next == (POKEAPI_ROOT_URL + "location/") {
+	if conf.previous == "" {
 		fmt.Println("Already on the first page")
 		return nil
 	}
@@ -113,7 +117,7 @@ func main() {
 		if ok {
 			err := command.callback(&conf)
 			if err != nil {
-				fmt.Print(err)
+				fmt.Println(err)
 			}
 		}
 
