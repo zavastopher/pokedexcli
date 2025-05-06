@@ -33,5 +33,13 @@ func Add(key string, val []byte, cache *Cache) {
 func Get(key string, cache *Cache) ([]byte, bool) {
 
 	val, ok := cache.CacheEntry[key]
-	return val.val, ok
+	if ok {
+		return val.val, ok
+	}
+
+	return nil, ok
+}
+
+func ReapLoop(cache *Cache) {
+
 }
