@@ -41,5 +41,6 @@ func Get(key string, cache *Cache) ([]byte, bool) {
 }
 
 func ReapLoop(cache *Cache) {
+	clock := time.NewTicker(cache.Interval)
 
 }
