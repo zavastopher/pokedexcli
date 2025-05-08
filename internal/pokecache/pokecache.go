@@ -16,14 +16,19 @@ type cacheEntry struct {
 	val       []byte
 }
 
-func NewCache(interval time.Duration) Cache {
-	return Cache{
+func NewCache(interval time.Duration) *Cache {
+	cache := Cache{
 		CacheMu:    sync.RWMutex{},
 		CacheEntry: make(map[string]cacheEntry),
 		Interval:   interval,
 	}
+	reapLoop(&cache)
+	return &cache
 }
+
 func Add(key string, val []byte, cache *Cache) {
+	cache.CacheMu.Lock()
+	defer cache.CacheMu.Unlock()
 	cache.CacheEntry[key] = cacheEntry{
 		createdAt: time.Now(),
 		val:       val,
@@ -31,7 +36,8 @@ func Add(key string, val []byte, cache *Cache) {
 }
 
 func Get(key string, cache *Cache) ([]byte, bool) {
-
+	cache.CacheMu.RLock()
+	defer cache.CacheMu.RUnlock()
 	val, ok := cache.CacheEntry[key]
 	if ok {
 		return val.val, ok
@@ -40,7 +46,22 @@ func Get(key string, cache *Cache) ([]byte, bool) {
 	return nil, ok
 }
 
-func ReapLoop(cache *Cache) {
+func reapLoop(cache *Cache) {
 	clock := time.NewTicker(cache.Interval)
+	defer clock.Stop()
+	for {
+		select {
+		case <-clock.C:
+			cache.CacheMu.Lock()
 
+			currentTime := time.Now()
+			for key, val := range cache.CacheEntry {
+				if currentTime.Sub(val.createdAt) > cache.Interval {
+					delete(cache.CacheEntry, key)
+				}
+			}
+
+			cache.CacheMu.Unlock()
+		}
+	}
 }

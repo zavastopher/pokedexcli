@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"internal/pokeapi"
 	. "internal/pokeapi"
+	//"internal/pokecache"
+	. "internal/pokecache"
 	"os"
 	"strings"
 )
@@ -18,6 +20,8 @@ type cliCommand struct {
 var commands map[string]cliCommand
 
 var conf Config
+
+var cache Cache
 
 func cleanInput(text string) []string {
 	cleanedInput := strings.Fields(text)
@@ -48,6 +52,12 @@ func commandMap(conf *Config) error {
 		fmt.Println("At the last page")
 		return nil
 	}
+	//val, ok := Get(conf.Next, &cache)
+
+	//if ok {
+	//	err = json.Unmarshal(body, &resp)
+	//}
+
 	var locations LocationResponse
 	next, prev, err := pokeapi.LocationsRequest(conf, &locations)
 	if err != nil {
