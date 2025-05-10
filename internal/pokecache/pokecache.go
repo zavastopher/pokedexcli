@@ -43,25 +43,27 @@ func Get(key string, cache *Cache) ([]byte, bool) {
 		return val.val, ok
 	}
 
-	return nil, ok
+	return nil, false
 }
 
 func reapLoop(cache *Cache) {
 	clock := time.NewTicker(cache.Interval)
 	defer clock.Stop()
-	for {
-		select {
-		case <-clock.C:
-			cache.CacheMu.Lock()
+	go func() {
+		for {
+			select {
+			case <-clock.C:
+				cache.CacheMu.Lock()
 
-			currentTime := time.Now()
-			for key, val := range cache.CacheEntry {
-				if currentTime.Sub(val.createdAt) > cache.Interval {
-					delete(cache.CacheEntry, key)
+				currentTime := time.Now()
+				for key, val := range cache.CacheEntry {
+					if currentTime.Sub(val.createdAt) > cache.Interval {
+						delete(cache.CacheEntry, key)
+					}
 				}
-			}
 
-			cache.CacheMu.Unlock()
+				cache.CacheMu.Unlock()
+			}
 		}
-	}
+	}()
 }

@@ -2,13 +2,15 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"internal/pokeapi"
 	. "internal/pokeapi"
-	//"internal/pokecache"
+	"internal/pokecache"
 	. "internal/pokecache"
 	"os"
 	"strings"
+	"time"
 )
 
 type cliCommand struct {
@@ -17,11 +19,15 @@ type cliCommand struct {
 	callback    func(*Config) error
 }
 
+type Config struct {
+	Next     string
+	Previous string
+	Cache    Cache
+}
+
 var commands map[string]cliCommand
 
 var conf Config
-
-var cache Cache
 
 func cleanInput(text string) []string {
 	cleanedInput := strings.Fields(text)
@@ -52,17 +58,32 @@ func commandMap(conf *Config) error {
 		fmt.Println("At the last page")
 		return nil
 	}
-	//val, ok := Get(conf.Next, &cache)
 
-	//if ok {
-	//	err = json.Unmarshal(body, &resp)
-	//}
+	val, ok := pokecache.Get(conf.Next, &(*conf).Cache)
+	if ok {
+		var locations LocationResponse
+		err := json.Unmarshal(val, &locations)
+		if err != nil {
+			err = fmt.Errorf("Unable to unmarshal data")
+		}
+		for _, loc := range locations.Results {
+			fmt.Println(loc.Name)
+		}
+		(*conf).Next = locations.Next
+		if locations.Previous == nil {
+			(*conf).Previous = ""
+		} else {
+			(*conf).Previous = *locations.Previous
+		}
+		return nil
+	}
 
 	var locations LocationResponse
-	next, prev, err := pokeapi.LocationsRequest(conf, &locations)
+	next, prev, results, err := pokeapi.LocationsRequest(conf.Next, &locations)
 	if err != nil {
 		return fmt.Errorf("Unable to get locations %v", err)
 	}
+	pokecache.Add(conf.Next, results, &(*conf).Cache)
 	(*conf).Next = next
 	(*conf).Previous = prev
 	for _, loc := range locations.Results {
@@ -76,12 +97,33 @@ func commandMapb(conf *Config) error {
 		fmt.Println("Already on the first page")
 		return nil
 	}
+
+	val, ok := pokecache.Get(conf.Previous, &(*conf).Cache)
+	if ok {
+		var locations LocationResponse
+		err := json.Unmarshal(val, &locations)
+		if err != nil {
+			err = fmt.Errorf("Unable to unmarshal data")
+		}
+		for _, loc := range locations.Results {
+			fmt.Println(loc.Name)
+		}
+		(*conf).Next = locations.Next
+		if locations.Previous == nil {
+			(*conf).Previous = ""
+		} else {
+			(*conf).Previous = *locations.Previous
+		}
+		return nil
+
+	}
+
 	var locations LocationResponse
-	next, prev, err := pokeapi.LocationsRequestBack(conf, &locations)
+	next, prev, results, err := pokeapi.LocationsRequest(conf.Previous, &locations)
 	if err != nil {
 		return fmt.Errorf("Unable to get locations %v", err)
 	}
-
+	pokecache.Add(conf.Previous, results, &(*conf).Cache)
 	(*conf).Next = next
 	(*conf).Previous = prev
 	for _, loc := range locations.Results {
@@ -117,6 +159,7 @@ func main() {
 	conf = Config{
 		Next:     POKEAPI_ROOT_URL + "location/",
 		Previous: "",
+		Cache:    *NewCache(5 * time.Second),
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
