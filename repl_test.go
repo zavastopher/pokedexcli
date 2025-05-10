@@ -51,14 +51,14 @@ func TestCleanInput(t *testing.T) {
 }
 
 func TestHelp(t *testing.T) {
-	if error := commandHelp(); error != nil {
+	if error := commandHelp(nil); error != nil {
 		t.Errorf("Commandhelp function is unable to print text")
 	}
 }
 
 func TestExit(t *testing.T) {
 	if os.Getenv("exit") == "1" {
-		commandExit()
+		commandExit(nil)
 		return
 	}
 
